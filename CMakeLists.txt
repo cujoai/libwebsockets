@@ -19,6 +19,7 @@ set(LWS_WITH_POLL 1)
 
 # it's at this point any toolchain file is brought in
 project(libwebsockets C)
+include(CTest)
 
 #
 # Select features recommended for PC distro packaging
@@ -71,6 +72,18 @@ option(LWS_WITH_SECURE_STREAMS "Secure Streams protocol-agnostic API" OFF)
 option(LWS_WITH_SECURE_STREAMS_PROXY_API "Secure Streams support to work across processes" OFF)
 option(LWS_WITH_SECURE_STREAMS_SYS_AUTH_API_AMAZON_COM "Auth support for api.amazon.com" OFF)
 option(LWS_WITH_SECURE_STREAMS_STATIC_POLICY_ONLY "Secure Streams Policy is hardcoded only" OFF)
+
+#
+# CTest options
+#
+#
+# If you build with LWS_WITH_MINIMAL_EXAMPLES, you can use CTest / make test to run
+# examples that can give a pass/fail response.  By default it runs tests both against
+# a local server peer and warmcat.com, if your CI wants to do the tests but does not
+# have internet routing, then you can still run a subset of tests with CTest / make
+# test that only does local tests by disabling this option.
+#
+option(LWS_CTEST_INTERNET_AVAILABLE "CTest will performs tests that need the Internet" ON)
 
 #
 # TLS library options... all except mbedTLS are basically OpenSSL variants.
@@ -1839,23 +1852,18 @@ if (LWS_WITH_STATIC)
 			PROPERTIES
 			OUTPUT_NAME websockets_static)
 	endif()
+	if (NOT LWS_WITH_SHARED)
 	add_custom_command(
-		      TARGET websockets
+		      TARGET websockets POST_BUILD
+		      DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/lws_config.h
 		      COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/include/libwebsockets.h
-		     					 ${CMAKE_CURRENT_BINARY_DIR}/include/libwebsockets.h
-	)
-
-	add_custom_command(
-		      TARGET websockets
+		     		${CMAKE_CURRENT_BINARY_DIR}/include/libwebsockets.h
 		      COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/include/libwebsockets/
-									${CMAKE_CURRENT_BINARY_DIR}/include/libwebsockets
-	)
-
-	add_custom_command(
-		      TARGET websockets
+				${CMAKE_CURRENT_BINARY_DIR}/include/libwebsockets
 		      COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/lws_config.h
-		     					 ${CMAKE_CURRENT_BINARY_DIR}/include/lws_config.h
+		     		${CMAKE_CURRENT_BINARY_DIR}/include/lws_config.h
 	)
+	endif()
 
 endif()
 
@@ -1886,24 +1894,17 @@ if (LWS_WITH_SHARED)
 		set_property(TARGET websockets_shared PROPERTY MACOSX_RPATH YES)
 	endif()
 
+
 	add_custom_command(
-		      TARGET websockets_shared
+		      TARGET websockets_shared POST_BUILD
+		      DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/lws_config.h
 		      COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/include/libwebsockets.h
-		     					 ${CMAKE_CURRENT_BINARY_DIR}/include/libwebsockets.h
-	)
-
-	add_custom_command(
-		      TARGET websockets
-		      COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/include/libwebsockets
-									${CMAKE_CURRENT_BINARY_DIR}/include/libwebsockets
-	)
-
-	add_custom_command(
-		      TARGET websockets_shared
+		     		${CMAKE_CURRENT_BINARY_DIR}/include/libwebsockets.h
+		      COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/include/libwebsockets/
+				${CMAKE_CURRENT_BINARY_DIR}/include/libwebsockets
 		      COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/lws_config.h
-		     					 ${CMAKE_CURRENT_BINARY_DIR}/include/lws_config.h
+		     		${CMAKE_CURRENT_BINARY_DIR}/include/lws_config.h
 	)
-
 
 endif()
 

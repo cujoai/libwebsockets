@@ -821,6 +821,7 @@ lws_threadpool_destroy(struct lws_threadpool *tp)
 
 	pthread_mutex_destroy(&tp->lock);
 
+	memset(tp, 0xdd, sizeof(*tp));
 	lws_free(tp);
 }
 

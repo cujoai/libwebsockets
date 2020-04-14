@@ -70,7 +70,7 @@ insert_wsi(const struct lws_context *context, struct lws *wsi)
 	done = &p[context->max_fds];
 
 
-	/* confirm it doesn't already exist */
+	/* confirm the wsi he's trying to add doesn't already exist */
 
 	while (p != done && *p != wsi)
 		p++;
